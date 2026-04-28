@@ -1,0 +1,36 @@
+{% extends "ec2/base.html" %}
+{% block title %}Image Build — {{ build.tag }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'ec2_image_builds:list' %}">&larr; back</a></p>
+<h1><span class="tag-pill">{{ build.tag }}</span></h1>
+<dl>
+    <dt>is_built</dt><dd>{{ build.is_built|yesno:"yes,no" }}</dd>
+    <dt>deprecated</dt><dd class="{% if build.deprecated %}deprecated{% endif %}">{{ build.deprecated|yesno:"yes,no" }}</dd>
+    <dt>docker_image_id</dt><dd>{{ build.docker_image_id|default:"—" }}</dd>
+    <dt>created_at</dt><dd>{{ build.created_at|date:"Y-m-d H:i" }}</dd>
+</dl>
+
+<h2>Dockerfile</h2>
+<pre class="dockerfile">{{ build.dockerfile_code }}</pre>
+
+<div class="actions">
+    <form method="post" action="{% url 'ec2_image_builds:build' build.pk %}">
+        {% csrf_token %}
+        <button class="btn" type="submit">{% if build.is_built %}Rebuild{% else %}Build{% endif %}</button>
+    </form>
+    <a class="btn btn-secondary" href="{% url 'ec2_image_builds:update' build.pk %}">Edit</a>
+    {% if build.is_built %}
+    <form method="post" action="{% url 'ec2_image_builds:unbuild' build.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-secondary" type="submit"
+                {% if referenced %}disabled title="In use by Image or Instance"{% endif %}>Un-build</button>
+    </form>
+    {% endif %}
+    <form method="post" action="{% url 'ec2_image_builds:delete' build.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit"
+                {% if referenced %}disabled title="In use by Image or Instance"{% endif %}
+                onclick="return confirm('Delete this build?');">Delete</button>
+    </form>
+</div>
+{% endblock %}
