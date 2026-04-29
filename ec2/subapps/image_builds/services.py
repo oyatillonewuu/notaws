@@ -103,34 +103,41 @@ def update_build(
     *,
     tag: str | None = None,
     dockerfile_code: str | None = None,
-):
+) -> BuildResult | None:
     """Apply admin updates per the Update lifecycle rule:
 
     - tag change: in-place, no Docker op
     - dockerfile change OR force_rebuild: triggers rebuild_and_replace
     """
     new_build = None
+    tag_changed = tag is not None and tag != current_build.tag
+    dockerfile_code_changed = (
+        dockerfile_code is not None and dockerfile_code != current_build.dockerfile_code
+    )
 
-    if tag is not None and tag != current_build.tag:
+    if tag_changed:
         current_build.tag = tag
         current_build.save()
 
-    if dockerfile_code is not None and dockerfile_code != current_build.dockerfile_code:
-        if not current_build.is_built:
-            current_build.dockerfile_code = dockerfile_code
-            current_build.save()
-            return BuildResult(old_build=current_build)
-
+    if current_build.is_built and dockerfile_code_changed:
         new_build = create_build_record_from(current_build)
         result = build(new_build)
-
         if new_build.docker_image_id == current_build.docker_image_id:
-            current_build.dockerfile_code = dockerfile_code
+            replace_dockerfile_code(current_build, dockerfile_code)
             current_build.save()
             new_build.delete()
             result.is_rebuilt_image_same = True
         return result
-    return BuildResult(old_build=current_build)
+    elif dockerfile_code_changed:
+        replace_dockerfile_code(current_build, dockerfile_code)
+        current_build.save()
+        return BuildResult(old_build=current_build)
+
+    return None
+
+
+def replace_dockerfile_code(build: ImageBuild, dockerfile_code: str | None):
+    build.dockerfile_code = dockerfile_code
 
 
 # --- references / un-build / delete -------------------------------------
