@@ -129,6 +129,9 @@ def update_build(
             current_build.save()
             new_build.delete()
             result.is_rebuilt_image_same = True
+        else:
+            current_build.deprecated = True
+            current_build.save()
         return result
     elif dockerfile_code_changed:
         replace_dockerfile_code(current_build, dockerfile_code)
