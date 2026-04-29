@@ -16,7 +16,10 @@ def build(tag: str, dockerfile_fileobj: IO) -> tuple[str, Any]:
             tag=tag,
             fileobj=dockerfile_fileobj,
             pull=True,
+            rm=True,
+            forcerm=True
         )
+        print(image.id)
     except docker.errors.BuildError as exc:
         raise ImageBuildException(f"Build failed for tag {tag!r}: {exc}") from exc
     except docker.errors.APIError as exc:
