@@ -54,8 +54,9 @@ def update_view(request, pk):
     if request.method == "POST":
         tag = request.POST.get("tag", "").strip() or None
         dockerfile_code = request.POST.get("dockerfile_code", None)
+
         try:
-            result = services.update_build(
+            result: BuildResult | None = services.update_build(  # type: ignore
                 build,
                 tag=tag,
                 dockerfile_code=dockerfile_code,
@@ -63,19 +64,22 @@ def update_view(request, pk):
         except Exception as exc:  # docker_ops exceptions surface here
             messages.error(request, f"Update failed: {exc}")
             return redirect("ec2_image_builds:detail", pk=build.pk)
-        if result.new_build is not None:
+
+        if result is not None and result.new_build is not None:
             messages.success(
                 request,
-                f"Rebuilt: new build #{new_build.pk} active; #{build.pk} deprecated",
+                f"Rebuilt: new build #{result.new_build.pk} active; #{build.pk} deprecated",
             )
-            return redirect("ec2_image_builds:detail", pk=new_build.pk)
-        if result.is_rebuilt_image_same:
+            return redirect("ec2_image_builds:detail", pk=result.new_build.pk)
+
+        if result is not None and result.is_rebuilt_image_same:
             messages.success(
                 request,
                 "Only updated code and did not create new build (cause: the resulting image is same).",
             )
         else:
             messages.success(request, "Updated.")
+
         return redirect("ec2_image_builds:detail", pk=build.pk)
     return render(request, "ec2/image_builds/update.html", {"build": build})
 

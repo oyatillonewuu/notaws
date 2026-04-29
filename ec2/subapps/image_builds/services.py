@@ -121,6 +121,8 @@ def update_build(
 
     if current_build.is_built and dockerfile_code_changed:
         new_build = create_build_record_from(current_build)
+        replace_dockerfile_code(new_build, dockerfile_code)
+        new_build.save()
         result = build(new_build)
         if new_build.docker_image_id == current_build.docker_image_id:
             replace_dockerfile_code(current_build, dockerfile_code)
