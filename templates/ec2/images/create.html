@@ -1,0 +1,15 @@
+{% extends "ec2/base.html" %}
+{% block title %}New Image{% endblock %}
+{% block content %}
+<h1>New Image</h1>
+<p><em>active_build is attached after creation via Edit.</em></p>
+<form method="post">
+    {% csrf_token %}
+    <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" placeholder="Ubuntu 22.04" required>
+    </div>
+    <button type="submit" class="btn">Create</button>
+    <a href="{% url 'ec2_images:list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

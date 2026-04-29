@@ -1,3 +1,4 @@
+"""Aggregates subapp URL patterns under /ec2/."""
 from django.urls import include, path
 
 urlpatterns = [
