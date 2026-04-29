@@ -1,13 +1,17 @@
 """Admin-facing views for ImageBuild. Users have no access to this resource —
 it is an infrastructure concern, analogous to AWS AMI build pipelines."""
-from django.contrib.admin.views.decorators import staff_member_required
+
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect, render
+
+from ec2.subapps.image_builds.schemas import BuildResult
 
 from . import services
 from .models import ImageBuild
 
 # TODO: fix blocking operations (building/deleting/etc.).
+
 
 @staff_member_required
 def list_view(request):
@@ -50,45 +54,62 @@ def update_view(request, pk):
     if request.method == "POST":
         tag = request.POST.get("tag", "").strip() or None
         dockerfile_code = request.POST.get("dockerfile_code", None)
-        force_rebuild = request.POST.get("force_rebuild") == "on"
         try:
-            _, new_build = services.update_build(
+            result = services.update_build(
                 build,
                 tag=tag,
                 dockerfile_code=dockerfile_code,
-                force_rebuild=force_rebuild,
             )
         except Exception as exc:  # docker_ops exceptions surface here
             messages.error(request, f"Update failed: {exc}")
             return redirect("ec2_image_builds:detail", pk=build.pk)
-        if new_build is not None:
+        if result.new_build is not None:
             messages.success(
                 request,
                 f"Rebuilt: new build #{new_build.pk} active; #{build.pk} deprecated",
             )
             return redirect("ec2_image_builds:detail", pk=new_build.pk)
-        messages.success(request, "Updated")
+        if result.is_rebuilt_image_same:
+            messages.success(
+                request,
+                "Only updated code and did not create new build (cause: the resulting image is same).",
+            )
+        else:
+            messages.success(request, "Updated.")
         return redirect("ec2_image_builds:detail", pk=build.pk)
     return render(request, "ec2/image_builds/update.html", {"build": build})
 
 
 @staff_member_required
 def build_view(request, pk):
-    """Trigger build or rebuild. Endpoint is the same for both — branches
-    on is_built inside services.build()."""
+    """
+    Trigger build or rebuild. Endpoint is the same for both — branches
+    on is_built inside services.build().
+    """
+
     if request.method != "POST":
         return redirect("ec2_image_builds:detail", pk=pk)
     build = get_object_or_404(ImageBuild, pk=pk)
+
     try:
-        _, new_build = services.build(build)
+        result: BuildResult = services.build(build)
     except Exception as exc:
         messages.error(request, f"Build failed: {exc}")
         return redirect("ec2_image_builds:detail", pk=build.pk)
-    if new_build is not None:
+
+    if result.new_build is not None:
         # FIX: change message to also note which build was deprecated.
-        messages.success(request, f"Rebuilt; new build #{new_build.pk} is active")
-        return redirect("ec2_image_builds:detail", pk=new_build.pk)
-    messages.success(request, "Built")
+        messages.success(
+            request,
+            f"Rebuilt; new build #{result.new_build.pk} is active. #{build.pk} deprecated.",
+        )
+        return redirect("ec2_image_builds:detail", pk=result.new_build.pk)
+    if result.is_rebuilt_image_same:
+        messages.success(
+            request, "Did not create new build. The resulting image is same."
+        )
+    else:
+        messages.success(request, "Built.")
     return redirect("ec2_image_builds:detail", pk=build.pk)
 
 

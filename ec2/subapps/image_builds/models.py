@@ -2,6 +2,7 @@ from django.db import models
 
 # TODO: add status field for building
 
+
 class ImageBuild(models.Model):
     """One concrete build of a Docker image from a Dockerfile.
 

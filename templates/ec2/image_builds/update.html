@@ -14,9 +14,6 @@
         <label for="dockerfile_code">Dockerfile</label>
         <textarea id="dockerfile_code" name="dockerfile_code" required>{{ build.dockerfile_code }}</textarea>
     </div>
-    <div class="field">
-        <label><input type="checkbox" name="force_rebuild"> force_rebuild</label>
-    </div>
     <button type="submit" class="btn">Save</button>
     <a href="{% url 'ec2_image_builds:detail' build.pk %}" class="btn btn-secondary">Cancel</a>
 </form>
