@@ -1,0 +1,26 @@
+{% extends "ec2/base.html" %}
+{% block title %}Edit Image — {{ image.name }}{% endblock %}
+{% block content %}
+<h1>Edit {{ image.name }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" value="{{ image.name }}" required>
+    </div>
+    <div class="field">
+        <label for="active_build">Active build</label>
+        <select id="active_build" name="active_build">
+            <option value="">— none —</option>
+            {% for b in builds %}
+                <option value="{{ b.pk }}" {% if image.active_build_id == b.pk %}selected{% endif %}>
+                    {{ b.tag }}
+                </option>
+            {% endfor %}
+        </select>
+        <small>Only built, non-deprecated builds shown.</small>
+    </div>
+    <button type="submit" class="btn">Save</button>
+    <a href="{% url 'ec2_images:detail' image.pk %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

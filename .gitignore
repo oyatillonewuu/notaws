@@ -1,4 +1,9 @@
 .venv
+<<<<<<< HEAD
 *.sqlite3
 **__pycache__
 __pycache__
+=======
+**__pycache__/
+*.sqlite3
+>>>>>>> feat/isolate-ec2-in-agent-code

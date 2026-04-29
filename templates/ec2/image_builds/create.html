@@ -1,0 +1,20 @@
+{% extends "ec2/base.html" %}
+{% block title %}New Image Build{% endblock %}
+{% block content %}
+<h1>New Image Build</h1>
+<p><em>Creating the record only — does not build the Docker image.</em></p>
+<form method="post">
+    {% csrf_token %}
+    <div class="field">
+        <label for="tag">Tag</label>
+        <input id="tag" type="text" name="tag" placeholder="ubuntu-22.04:v1" required>
+    </div>
+    <div class="field">
+        <label for="dockerfile_code">Dockerfile</label>
+        <textarea id="dockerfile_code" name="dockerfile_code" required>FROM ubuntu:22.04
+</textarea>
+    </div>
+    <button type="submit" class="btn">Create</button>
+    <a href="{% url 'ec2_image_builds:list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
