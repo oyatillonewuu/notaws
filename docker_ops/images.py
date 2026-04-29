@@ -39,5 +39,6 @@ def exists(image_id: str) -> bool:
         return True
     except docker.errors.ImageNotFound:
         return False
+    # FIX: must raise error
     except docker.errors.APIError:
         return False

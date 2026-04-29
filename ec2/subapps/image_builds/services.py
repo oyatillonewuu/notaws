@@ -110,6 +110,14 @@ def update_build(
     if tag is not None and tag != mib_entity.tag:
         mib_entity.tag = tag
 
+    # FIX: this way of updaing is wrong. It contradicts append-only
+    # #    rule.
+    # #    Expected behavior: create new build if there is a change in docker file.
+    # #    Also, this needs to be checked with is_built.
+    # #    If the build is not built, we do update docker file. We don't handler
+    # #    rebuild case.
+    # TODO: later: move the logic of checking dockerfile code to a separate function.
+
     if dockerfile_code is not None and dockerfile_code != mib_entity.dockerfile_code:
         mib_entity.dockerfile_code = dockerfile_code
         rebuild_needed = True
@@ -118,6 +126,7 @@ def update_build(
 
     if rebuild_needed and mib_entity.is_built:
         new_build = rebuild_and_replace(mib_entity)
+    # FIX: This is totally wrong.
     elif rebuild_needed and not mib_entity.is_built:
         new_id = build_from(mib_entity)
         update_docker_image_id(mib_entity, new_id)
@@ -139,6 +148,7 @@ def is_referenced(mib_entity: ImageBuild) -> bool:
         return True
     return False
 
+# TODO: implement actual job.
 
 def schedule_remove_if_exists_from(mib_entity: ImageBuild) -> None:
     """Schedule docker image removal as a background job. Synchronous fallback
@@ -175,6 +185,7 @@ def delete_build(mib_entity: ImageBuild) -> None:
 
 # --- background cleanup -------------------------------------------------
 
+# TODO: implement actual job.
 
 def deprecated_build_clean_up_job() -> int:
     """Periodic sweep: delete deprecated builds no longer referenced by any

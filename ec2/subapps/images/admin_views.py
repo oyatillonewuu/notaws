@@ -43,12 +43,15 @@ def update_view(request, pk):
     image = get_object_or_404(Image, pk=pk)
     builds = services.selectable_builds_qs()
     if request.method == "POST":
+        # FIX: update logic details must be delegated to service.
         name = request.POST.get("name", "").strip()
         active_build_id = request.POST.get("active_build") or None
         if not name:
             messages.error(request, "name is required")
         else:
             image.name = name
+            # FIX: [CRITICAL] Activre build is not checked for existence.
+            # #    This code allows invalid builds.
             image.active_build_id = active_build_id
             image.save()
             messages.success(request, "Updated")

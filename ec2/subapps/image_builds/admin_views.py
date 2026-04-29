@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from . import services
 from .models import ImageBuild
 
+# TODO: fix blocking operations (building/deleting/etc.).
 
 @staff_member_required
 def list_view(request):
@@ -84,6 +85,7 @@ def build_view(request, pk):
         messages.error(request, f"Build failed: {exc}")
         return redirect("ec2_image_builds:detail", pk=build.pk)
     if new_build is not None:
+        # FIX: change message to also note which build was deprecated.
         messages.success(request, f"Rebuilt; new build #{new_build.pk} is active")
         return redirect("ec2_image_builds:detail", pk=new_build.pk)
     messages.success(request, "Built")
