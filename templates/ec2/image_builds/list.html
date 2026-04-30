@@ -10,20 +10,12 @@
     <tbody>
         {% for b in builds %}
         <tr>
-            <td><a href="{% url 'ec2_image_builds:detail' b.pk %}"><span class="tag-pill">{{ b.tag }}</span></a></td>
+            <td><span class="tag-pill">{{ b.tag }}</span></a></td>
             <td>{{ b.is_built|yesno:"yes,no" }}</td>
             <td class="{% if b.deprecated %}deprecated{% endif %}">{{ b.deprecated|yesno:"yes,no" }}</td>
             <td>{{ b.created_at|date:"Y-m-d H:i" }}</td>
             <td class="actions">
-                <form method="post" action="{% url 'ec2_image_builds:build' b.pk %}">
-                    {% csrf_token %}
-                    <button class="btn" type="submit">{% if b.is_built %}Rebuild{% else %}Build{% endif %}</button>
-                </form>
-                <form method="post" action="{% url 'ec2_image_builds:delete' b.pk %}">
-                    {% csrf_token %}
-                    <button class="btn btn-danger" type="submit"
-                            onclick="return confirm('Delete this build?');">Delete</button>
-                </form>
+                <a href="{% url 'ec2_image_builds:detail' b.pk %}" class="btn">View</a>
             </td>
         </tr>
         {% empty %}

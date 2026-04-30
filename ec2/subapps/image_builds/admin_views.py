@@ -5,17 +5,19 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from ec2.subapps.image_builds.exceptions import (
+from . import services
+from .exceptions import (
     BuildInUseError,
     CannotOperateOnDeprecatedBuild,
 )
-from ec2.subapps.image_builds.schemas import (
-    BuildResult,
-    HandleDockerfileCodeUpdateResult,
-)
-
-from . import services
 from .models import ImageBuild
+from .schemas import (
+    BuildResult,
+    DeleteResult,
+    UnbuildResult,
+    UpdateResult,
+)
+from .utils import set_django_message_from_result
 
 # TODO: fix blocking operations (building/deleting/etc.).
 
@@ -63,15 +65,14 @@ def update_direct(request, pk):
         tag = request.POST.get("tag", "").strip() or None
 
         try:
-            services.handle_direct_updates(  # type: ignore
+            result: UpdateResult = services.handle_direct_updates(  # type: ignore
                 current_build=build,
                 tag=tag,
             )
+            set_django_message_from_result(request=request, service_result=result)
         except Exception as exc:  # docker_ops exceptions surface here
             messages.error(request, f"Update failed: {exc}")
             return redirect("ec2_image_builds:detail", pk=build.pk)
-
-        messages.success(request, "Update successful.")
 
         return redirect("ec2_image_builds:detail", pk=build.pk)
     return render(request, "ec2/image_builds/update_direct.html", {"build": build})
@@ -85,17 +86,14 @@ def update_dockerfile_code(request, pk):
         dockerfile_code = request.POST.get("dockerfile_code", "").strip() or None
 
         try:
-            result: HandleDockerfileCodeUpdateResult = (
-                services.handle_dockerfile_code_update(  # type: ignore
-                    current_build=build,
-                    dockerfile_code=dockerfile_code,
-                )
+            result: UpdateResult = services.handle_dockerfile_code_update(  # type: ignore
+                current_build=build,
+                dockerfile_code=dockerfile_code,
             )
+            set_django_message_from_result(request=request, service_result=result)
         except Exception as exc:  # docker_ops exceptions surface here
             messages.error(request, f"Update failed: {exc}")
             return redirect("ec2_image_builds:detail", pk=build.pk)
-
-        messages.success(request, result.message)
 
         return redirect("ec2_image_builds:detail", pk=build.pk)
     return render(
@@ -116,11 +114,10 @@ def build_view(request, pk):
 
     try:
         result: BuildResult = services.build(current_build=build)
+        set_django_message_from_result(request=request, service_result=result)
     except Exception as exc:
         messages.error(request, f"Build failed: {exc}")
         return redirect("ec2_image_builds:detail", pk=build.pk)
-
-    messages.success(request, message=result.message)
 
     return redirect("ec2_image_builds:detail", pk=build.pk)
 
@@ -131,10 +128,11 @@ def unbuild_view(request, pk):
         return redirect("ec2_image_builds:detail", pk=pk)
     build = get_object_or_404(ImageBuild, pk=pk)
     try:
-        services.unbuild(current_build=build)
-        messages.success(request, "Un-built")
+        result: UnbuildResult = services.unbuild(current_build=build)
+        set_django_message_from_result(request=request, service_result=result)
     except (BuildInUseError, CannotOperateOnDeprecatedBuild) as exc:
         messages.error(request, str(exc))
+
     return redirect("ec2_image_builds:detail", pk=build.pk)
 
 
@@ -144,9 +142,9 @@ def delete_view(request, pk):
         return redirect("ec2_image_builds:detail", pk=pk)
     build = get_object_or_404(ImageBuild, pk=pk)
     try:
-        services.delete_build(current_build=build)
+        result: DeleteResult = services.delete_build(current_build=build)
+        set_django_message_from_result(request=request, service_result=result)
     except services.BuildInUseError as exc:
         messages.error(request, str(exc))
         return redirect("ec2_image_builds:detail", pk=build.pk)
-    messages.success(request, "Deleted")
     return redirect("ec2_image_builds:list")
