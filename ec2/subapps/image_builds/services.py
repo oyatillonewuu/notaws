@@ -26,12 +26,12 @@ def build(*, current_build: ImageBuild) -> BuildResult:
     result.status = ResultStatus.warning
 
     if not current_build.is_built:
-        dispatch_build(build=current_build)
+        dispatch_build(build_id=current_build.pk)
         result.message = "Build queued."
         return result
 
     dispatch_replication(
-        current_build=current_build, dockerfile_code=current_build.dockerfile_code
+        current_build_id=current_build.pk, dockerfile_code=current_build.dockerfile_code
     )
 
     result.message = "Rebuild queued."
@@ -77,7 +77,7 @@ def handle_dockerfile_code_update(
         result.status = ResultStatus.success
         return result
 
-    dispatch_replication(current_build=current_build, dockerfile_code=dockerfile_code)
+    dispatch_replication(current_build_id=current_build.pk, dockerfile_code=dockerfile_code)
     result.message = "Replication queued."
 
     return result
