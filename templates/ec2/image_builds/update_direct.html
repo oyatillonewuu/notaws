@@ -1,0 +1,16 @@
+{% extends "ec2/base.html" %}
+{% block title %}Edit — {{ build.tag }}{% endblock %}
+{% block content %}
+<h1>Edit <span class="tag-pill">{{ build.tag }}</span></h1>
+<p><em>Tag changes are in-place. Dockerfile changes or force_rebuild trigger replication
+(a new ImageBuild record; this one becomes deprecated).</em></p>
+<form method="post" action="{% url 'ec2_image_builds:update_direct' build.pk %}">
+    {% csrf_token %}
+    <div class="field">
+        <label for="tag">Tag</label>
+        <input id="tag" type="text" name="tag" value="{{ build.tag }}" required>
+    </div>
+    <button type="submit" class="btn">Save</button>
+    <a href="{% url 'ec2_image_builds:detail' build.pk %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

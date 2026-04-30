@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import models
 
 # TODO: add status field for building
@@ -26,6 +28,18 @@ class ImageBuild(models.Model):
     @property
     def is_built(self) -> bool:
         return self.docker_image_id is not None
+
+    def update(self, field_values_kv: dict[str, Any]):
+        for field, value in field_values_kv.items():
+            if not hasattr(self, field):
+                raise AttributeError(
+                    f"Updating field error: no such attribute '{field}' in {self}.name="
+                )
+            setattr(self, field, value)
+
+        update_fields = list(field_values_kv.keys()) + ["updated_at"]
+
+        self.save(update_fields=update_fields)
 
     def __str__(self) -> str:
         return f"{self.tag} ({'built' if self.is_built else 'unbuilt'})"
