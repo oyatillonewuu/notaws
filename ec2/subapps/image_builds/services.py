@@ -26,11 +26,11 @@ def build(*, current_build: ImageBuild) -> BuildResult:
     result.status = ResultStatus.warning
 
     if not current_build.is_built:
-        dispatch_build(build_id=current_build.pk)
+        dispatch_build.delay(build_id=current_build.pk)
         result.message = "Build queued."
         return result
 
-    dispatch_replication(
+    dispatch_replication.delay(
         current_build_id=current_build.pk, dockerfile_code=current_build.dockerfile_code
     )
 
@@ -77,7 +77,9 @@ def handle_dockerfile_code_update(
         result.status = ResultStatus.success
         return result
 
-    dispatch_replication(current_build_id=current_build.pk, dockerfile_code=dockerfile_code)
+    dispatch_replication.delay(
+        current_build_id=current_build.pk, dockerfile_code=dockerfile_code
+    )
     result.message = "Replication queued."
 
     return result
@@ -92,7 +94,7 @@ def unbuild(*, current_build: ImageBuild) -> UnbuildResult:
         raise BuildInUseError("Build is referenced by an Instance or Image")
 
     if current_build.is_built:
-        dispatch_image_remove(image_id=current_build.docker_image_id)
+        dispatch_image_remove.delay(image_id=current_build.docker_image_id)
         current_build.update({"docker_image_id": None})
         result.message = "Image removal queued. Image id set to None."
     else:
@@ -111,7 +113,7 @@ def delete_build(*, current_build: ImageBuild) -> DeleteResult:
         raise BuildInUseError("Build is referenced by an Instance or Image")
 
     if current_build.is_built:
-        dispatch_image_remove(image_id=current_build.docker_image_id)
+        dispatch_image_remove.delay(image_id=current_build.docker_image_id)
         result.message = "Image removal queued. "
 
     current_build.delete()

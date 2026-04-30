@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -75,8 +76,12 @@ WSGI_APPLICATION = "notaws.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DATABASE_URL", "").split("/")[-1],
+        "USER": "notaws",
+        "PASSWORD": "notaws",
+        "HOST": "db",
+        "PORT": "5432",
     }
 }
 
@@ -117,3 +122,15 @@ USE_TZ = True
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_URL = "static/"
+
+# Celery settings
+
+CELERY_BROKER_URL = os.environ.get(
+    "CELERY_BROKER_URL", "amqp://guest:guest@localhost:5672//"
+)
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://localhost:6379/0"
+)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_TASK_RESULT_EXPIRES = 3600  # seconds, 1 hour
