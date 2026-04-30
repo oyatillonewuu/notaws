@@ -1,25 +1,34 @@
 from dataclasses import dataclass
 
-from ec2.subapps.image_builds.enums import Status
-
+from .enums import ResultStatus
 from .models import ImageBuild
 
 
 @dataclass
 class GenericServiceFunctionResult:
-    input_build: ImageBuild
-    new_build: ImageBuild | None = None
     message: str | None = None
-    status: Status = Status.success
+    status: ResultStatus = ResultStatus.success
 
 
 class BuildResult(GenericServiceFunctionResult):
     pass
 
 
-class HandleDockerfileCodeUpdateResult(GenericServiceFunctionResult):
+class UpdateResult(GenericServiceFunctionResult):
     pass
 
 
-class TryReplicationResult(GenericServiceFunctionResult):
+class UnbuildResult(GenericServiceFunctionResult):
     pass
+
+
+class DeleteResult(GenericServiceFunctionResult):
+    pass
+
+
+@dataclass
+class TryReplicationResult:
+    input_build: ImageBuild
+    new_build: ImageBuild | None = None
+    message: str | None = None
+    status: ResultStatus = ResultStatus.success

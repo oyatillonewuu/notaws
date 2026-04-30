@@ -1,7 +1,7 @@
 from enum import StrEnum, auto
 
 
-class Status(StrEnum):
+class ResultStatus(StrEnum):
     success = auto()
-    failed = auto()
+    error = auto()
     warning = auto()
