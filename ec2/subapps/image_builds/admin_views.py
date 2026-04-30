@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect, render
 
+from ec2.subapps.image_builds.exceptions import CannotOperateOnDeprecatedBuild
 from ec2.subapps.image_builds.schemas import (
     BuildResult,
     HandleDockerfileCodeUpdateResult,
@@ -131,7 +132,7 @@ def unbuild_view(request, pk):
     try:
         services.unbuild(current_build=build)
         messages.success(request, "Un-built")
-    except services.BuildInUseError as exc:
+    except (services.BuildInUseError, services.CannotOperateOnDeprecatedBuild) as exc:
         messages.error(request, str(exc))
     return redirect("ec2_image_builds:detail", pk=build.pk)
 
