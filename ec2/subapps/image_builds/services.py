@@ -6,7 +6,6 @@ from django.db import transaction
 
 import docker_ops
 from docker_ops.utils import text_to_fileobj
-from ec2.subapps.image_builds.enums import Status
 from ec2.subapps.image_builds.schemas import (
     BuildResult,
     HandleDockerfileCodeUpdateResult,
