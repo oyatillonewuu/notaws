@@ -1,0 +1,27 @@
+{% extends "ec2/base.html" %}
+{% block title %}Edit Instance{% endblock %}
+{% block content %}
+<p><a href="{% url 'ec2_instances:detail' instance.pk %}">&larr; back</a></p>
+<h1>Edit {{ instance.name|default:instance.short_id }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" value="{{ instance.name|default:'' }}">
+    </div>
+    <div class="field">
+        <label for="cpu">CPUs (1–{{ max_cpu }})</label>
+        <input id="cpu" type="number" name="cpu" min="1" max="{{ max_cpu }}" value="{{ instance.cpu }}" required>
+    </div>
+    <div class="field">
+        <label for="ram">RAM in GB (1–{{ max_ram }})</label>
+        <input id="ram" type="number" name="ram" min="1" max="{{ max_ram }}" value="{{ instance.ram }}" required>
+    </div>
+    <div class="field">
+        <label for="storage">Storage in GB (1–{{ max_storage }})</label>
+        <input id="storage" type="number" name="storage" min="1" max="{{ max_storage }}" value="{{ instance.storage }}" required>
+    </div>
+    <button type="submit" class="btn">Save</button>
+    <a href="{% url 'ec2_instances:detail' instance.pk %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

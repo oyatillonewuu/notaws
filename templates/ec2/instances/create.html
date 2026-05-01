@@ -1,0 +1,36 @@
+{% extends "ec2/base.html" %}
+{% block title %}New Instance{% endblock %}
+{% block content %}
+<p><a href="{% url 'ec2_instances:list' %}">&larr; back</a></p>
+<h1>New Instance</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="field">
+        <label for="name">Name <em>(optional)</em></label>
+        <input id="name" type="text" name="name" placeholder="my-server">
+    </div>
+    <div class="field">
+        <label for="image">Machine Image</label>
+        <select id="image" name="image" required>
+            <option value="">— choose —</option>
+            {% for img in images %}
+            <option value="{{ img.pk }}">{{ img.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label for="cpu">CPUs (1–{{ max_cpu }})</label>
+        <input id="cpu" type="number" name="cpu" min="1" max="{{ max_cpu }}" value="1" required>
+    </div>
+    <div class="field">
+        <label for="ram">RAM in GB (1–{{ max_ram }})</label>
+        <input id="ram" type="number" name="ram" min="1" max="{{ max_ram }}" value="1" required>
+    </div>
+    <div class="field">
+        <label for="storage">Storage in GB (1–{{ max_storage }})</label>
+        <input id="storage" type="number" name="storage" min="1" max="{{ max_storage }}" value="10" required>
+    </div>
+    <button type="submit" class="btn">Launch Instance</button>
+    <a href="{% url 'ec2_instances:list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "ec2/base.html" %}
+{% block title %}All Instances (Admin){% endblock %}
+{% block content %}
+<h1>All Instances</h1>
+<table>
+    <thead>
+        <tr><th>ID</th><th>Owner</th><th>Image</th><th>CPU</th><th>RAM</th><th>Created</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for inst in instances %}
+        <tr>
+            <td><code>{{ inst.short_id }}</code></td>
+            <td>{{ inst.owner.username|default:"—" }}</td>
+            <td>{{ inst.image.name }}</td>
+            <td>{{ inst.cpu }}</td>
+            <td>{{ inst.ram }} GB</td>
+            <td>{{ inst.created_at|date:"Y-m-d" }}</td>
+            <td class="actions">
+                <form method="post" action="{% url 'ec2_instances:admin:delete' inst.pk %}">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" type="submit"
+                            onclick="return confirm('Delete this instance?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><em>No instances.</em></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

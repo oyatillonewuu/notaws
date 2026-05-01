@@ -1,2 +1,4 @@
 Django>=5.0,<6.0
 docker>=7.0
+channels>=4.0
+daphne>=4.0

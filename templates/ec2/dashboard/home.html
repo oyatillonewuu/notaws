@@ -1,0 +1,10 @@
+{% extends "ec2/base.html" %}
+{% block title %}EC2{% endblock %}
+{% block content %}
+<h1>EC2</h1>
+<p>Elastic Compute Cloud — provision and manage virtual machines backed by Docker containers.</p>
+<div class="actions">
+    <a class="btn btn-secondary" href="{% url 'ec2_images:list' %}">Browse Images</a>
+    <a class="btn" href="{% url 'ec2_instances:list' %}">Go to Your Instance Dashboard</a>
+</div>
+{% endblock %}

@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings
 from django.db import models
 
@@ -45,6 +47,16 @@ class Instance(models.Model):
     @property
     def short_id(self) -> str:
         return (self.docker_container_id or "")[:12] or f"i-{self.pk:08d}"
+
+    def update(self, field_values_kv: dict[str, Any]):
+        for field, value in field_values_kv.items():
+            if not hasattr(self, field):
+                raise AttributeError(
+                    f"Updating field error: no such attribute '{field}' in {self}.name="
+                )
+            setattr(self, field, value)
+        update_fields = list(field_values_kv.keys()) + ["updated_at"]
+        self.save(update_fields=update_fields)
 
     def __str__(self) -> str:
         return self.name or self.short_id

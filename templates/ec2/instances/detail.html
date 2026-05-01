@@ -1,0 +1,32 @@
+{% extends "ec2/base.html" %}
+{% block title %}Instance — {{ instance }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'ec2_instances:list' %}">&larr; back</a></p>
+<h1>{{ instance.name|default:instance.short_id }}</h1>
+<dl>
+    <dt>ID</dt><dd><code>{{ instance.short_id }}</code></dd>
+    <dt>Image</dt><dd>{{ instance.image.name }}</dd>
+    <dt>CPU</dt><dd>{{ instance.cpu }} vCPU</dd>
+    <dt>RAM</dt><dd>{{ instance.ram }} GB</dd>
+    <dt>Storage</dt><dd>{{ instance.storage }} GB</dd>
+    <dt>Status</dt><dd>{{ status }}</dd>
+    <dt>Created</dt><dd>{{ instance.created_at|date:"Y-m-d H:i" }}</dd>
+</dl>
+<div class="actions">
+    <a class="btn" href="{% url 'ec2_instances:terminal' instance.pk %}">Connect</a>
+    <form method="post" action="{% url 'ec2_instances:start' instance.pk %}">
+        {% csrf_token %}
+        <button class="btn" type="submit">Start / Restart</button>
+    </form>
+    <form method="post" action="{% url 'ec2_instances:stop' instance.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-secondary" type="submit">Stop</button>
+    </form>
+    <a class="btn btn-secondary" href="{% url 'ec2_instances:update' instance.pk %}">Edit</a>
+    <form method="post" action="{% url 'ec2_instances:delete' instance.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit"
+                onclick="return confirm('Delete this instance?');">Delete</button>
+    </form>
+</div>
+{% endblock %}
