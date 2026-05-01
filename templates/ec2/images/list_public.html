@@ -6,10 +6,10 @@
     <thead><tr><th>Name</th></tr></thead>
     <tbody>
         {% for img in images %}
-        <tr>
-            <td>{{ img.name }}</td>
-        </tr>
-        {% empty %}<tr><td colspan="4"><em>No images yet.</em></td></tr>
+            <tr>
+                <td>{{ img.name }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="4"><em>No images yet.</em></td></tr>
         {% endfor %}
     </tbody>
 </table>

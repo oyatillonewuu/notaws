@@ -7,5 +7,5 @@ from .models import Image
 
 
 def list_view(request):
-    images = Image.objects.select_related("active_build").all()
+    images = Image.objects.filter(active_build__isnull=False).all()
     return render(request, "ec2/images/list_public.html", {"images": images})
