@@ -1,0 +1,107 @@
+{% extends 'ec2/base.html' %}
+
+{% block title %}notaws | Dashboard{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-panel hero-panel-dark">
+        <span class="eyebrow">Operations dashboard</span>
+        <h1>Monitor the health of your compute workflow.</h1>
+        <p class="lead">
+            Review your image catalog, build activity, and tracked instances from one place.
+            This dashboard is now the main entry point to the rest of the platform.
+        </p>
+        <div class="actions">
+            <a class="btn" href="{% url 'welcome' %}">Back to home</a>
+        </div>
+    </div>
+    <div class="card">
+        <span class="eyebrow">Status</span>
+        <h2>Current platform state</h2>
+        {% if not database_ready %}
+            <div class="inline-note">
+                Live dashboard numbers are waiting for the database setup. Run <strong>python manage.py migrate</strong> first.
+            </div>
+        {% else %}
+            <p class="help-text">The dashboard is reading current records from the platform database.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="stats-grid">
+    {% for item in stats %}
+        <article class="stat-card">
+            <h3>{{ item.label }}</h3>
+            <div class="stat-value">{{ item.value }}</div>
+            <p class="help-text">{{ item.detail }}</p>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="section-head">
+    <h2>Quick access</h2>
+    <p class="lead">Use these links to open the rest of the available pages.</p>
+</section>
+
+<section class="process-grid">
+    <article class="feature-card">
+        <h3>Instances</h3>
+        <p class="help-text">Review tracked workloads, owners, image lineage, and current sizing.</p>
+        <a class="btn" href="{% url 'ec2_instances:index' %}">Open instances</a>
+    </article>
+
+    <article class="feature-card">
+        <h3>Images</h3>
+        <p class="help-text">Browse published images. Admins can manage the catalog from the same destination pattern.</p>
+        {% if user.is_staff or user.is_superuser %}
+            <a class="btn" href="{% url 'ec2_images:admin:list' %}">Manage images</a>
+        {% else %}
+            <a class="btn" href="{% url 'ec2_images:list' %}">Browse images</a>
+        {% endif %}
+    </article>
+
+    <article class="feature-card">
+        <h3>Image builds</h3>
+        <p class="help-text">Open the build pipeline area to prepare and maintain reusable runtime images.</p>
+        {% if user.is_staff or user.is_superuser %}
+            <a class="btn" href="{% url 'ec2_image_builds:admin:list' %}">Open image builds</a>
+        {% else %}
+            <button class="btn btn-secondary" type="button" disabled>Admins only</button>
+        {% endif %}
+    </article>
+</section>
+
+<section class="section-head">
+    <h2>Recent instances</h2>
+</section>
+
+{% if recent_instances %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Image</th>
+                <th>Build</th>
+                <th>CPU / RAM / Storage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for instance in recent_instances %}
+                <tr>
+                    <td>{{ instance.name|default:instance.short_id }}</td>
+                    <td>{{ instance.owner.username|default:'—' }}</td>
+                    <td>{{ instance.image.name }}</td>
+                    <td>{{ instance.image_build_in_use.tag }}</td>
+                    <td>{{ instance.cpu }} CPU / {{ instance.ram }} GB / {{ instance.storage }} GB</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <section class="empty-state">
+        <h3>No instance activity yet</h3>
+        <p class="help-text">Once instances are stored, they will appear here for quick operational review.</p>
+    </section>
+{% endif %}
+{% endblock %}
