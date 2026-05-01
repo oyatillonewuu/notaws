@@ -1,6 +1,8 @@
 from . import containers, images
 from .client import docker_client
 from .exceptions import (
+    ContainerCreateException,
+    ContainerOpException,
     DockerOpsException,
     ImageBuildException,
     ImageRemoveException,
@@ -13,4 +15,6 @@ __all__ = [
     "DockerOpsException",
     "ImageBuildException",
     "ImageRemoveException",
+    "ContainerCreateException",
+    "ContainerOpException",
 ]

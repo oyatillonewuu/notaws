@@ -12,3 +12,11 @@ class ImageBuildException(DockerOpsException):
 
 class ImageRemoveException(DockerOpsException):
     pass
+
+
+class ContainerCreateException(DockerOpsException):
+    pass
+
+
+class ContainerOpException(DockerOpsException):
+    pass

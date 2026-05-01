@@ -1,0 +1,30 @@
+{% extends "ec2/base.html" %}
+{% block title %}My Instances{% endblock %}
+{% block content %}
+<h1>My Instances</h1>
+<p><a class="btn" href="{% url 'ec2_instances:create' %}">+ New VM</a></p>
+<table>
+    <thead>
+        <tr><th>Name / ID</th><th>Image</th><th>CPU</th><th>RAM</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for inst, status in instances_with_status %}
+        <tr>
+            <td>
+                <strong>{{ inst.name|default:"—" }}</strong><br>
+                <code>{{ inst.short_id }}</code>
+            </td>
+            <td>{{ inst.image.name }}</td>
+            <td>{{ inst.cpu }}</td>
+            <td>{{ inst.ram }} GB</td>
+            <td>{{ status }}</td>
+            <td class="actions">
+                <a class="btn btn-secondary" href="{% url 'ec2_instances:detail' inst.pk %}">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><em>No instances yet.</em></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

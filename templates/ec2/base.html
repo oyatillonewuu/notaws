@@ -17,7 +17,7 @@
             {% else %}
                 <a href="{% url 'ec2_images:list' %}">Images</a>
             {% endif %}
-            <a>Instances</a>
+            <a href="{% url 'ec2_instances:list' %}">Instances</a>
         </nav>
         <div class="auth">
             {% if user.is_authenticated %}
