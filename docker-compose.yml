@@ -37,6 +37,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
+      - staticfiles:/app/staticfiles
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8000:8000"
@@ -57,12 +58,14 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
 
   worker:
     build: .
     command: celery -A notaws worker --loglevel=info
     volumes:
       - .:/app
+      - staticfiles:/app/staticfiles
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
@@ -80,5 +83,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      web:
+        condition: service_started
+
 volumes:
   postgres_data:
+  staticfiles:

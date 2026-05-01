@@ -11,3 +11,5 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+RUN DJANGO_SECRET_KEY=dummy-build-time-key python3 manage.py collectstatic --noinput
