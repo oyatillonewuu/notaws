@@ -34,7 +34,7 @@ def create_view(request):
         else:
             image = Image.objects.create(name=name)
             messages.success(request, f"Created Image {image.name}")
-            return redirect("ec2_images:detail", pk=image.pk)
+            return redirect("ec2_images:admin:detail", pk=image.pk)
     return render(request, "ec2/images/create.html")
 
 
@@ -55,7 +55,7 @@ def update_view(request, pk):
             image.active_build_id = active_build_id
             image.save()
             messages.success(request, "Updated")
-            return redirect("ec2_images:detail", pk=image.pk)
+            return redirect("ec2_images:admin:detail", pk=image.pk)
     return render(
         request,
         "ec2/images/update.html",
@@ -66,12 +66,12 @@ def update_view(request, pk):
 @staff_member_required
 def delete_view(request, pk):
     if request.method != "POST":
-        return redirect("ec2_images:detail", pk=pk)
+        return redirect("ec2_images:admin:detail", pk=pk)
     image = get_object_or_404(Image, pk=pk)
     try:
         services.delete_image(image)
     except services.ImageInUseError as exc:
         messages.error(request, str(exc))
-        return redirect("ec2_images:detail", pk=image.pk)
+        return redirect("ec2_images:admin:detail", pk=image.pk)
     messages.success(request, "Deleted")
-    return redirect("ec2_images:list")
+    return redirect("ec2_images:admin:list")

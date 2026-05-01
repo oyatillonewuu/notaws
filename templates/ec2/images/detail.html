@@ -1,21 +1,21 @@
 {% extends "ec2/base.html" %}
 {% block title %}Image — {{ image.name }}{% endblock %}
 {% block content %}
-<p><a href="{% url 'ec2_images:list' %}">&larr; back</a></p>
+<p><a href="{% url 'ec2_images:admin:list' %}">&larr; back</a></p>
 <h1>{{ image.name }}</h1>
 <dl>
     <dt>active_build</dt>
     <dd>
         {% if image.active_build %}
-            <a href="{% url 'ec2_image_builds:detail' image.active_build.pk %}">
+            <a href="{% url 'ec2_image_builds:admin:detail' image.active_build.pk %}">
                 <span class="tag-pill">{{ image.active_build.tag }}</span>
             </a>
         {% else %}<em>none</em>{% endif %}
     </dd>
 </dl>
 <div class="actions">
-    <a class="btn btn-secondary" href="{% url 'ec2_images:update' image.pk %}">Edit</a>
-    <form method="post" action="{% url 'ec2_images:delete' image.pk %}">
+    <a class="btn btn-secondary" href="{% url 'ec2_images:admin:update' image.pk %}">Edit</a>
+    <form method="post" action="{% url 'ec2_images:admin:delete' image.pk %}">
         {% csrf_token %}
         <button class="btn btn-danger" type="submit"
                 {% if has_instances %}disabled title="In use by Instances"{% endif %}

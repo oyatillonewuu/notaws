@@ -10,6 +10,6 @@
         <input id="name" type="text" name="name" placeholder="Ubuntu 22.04" required>
     </div>
     <button type="submit" class="btn">Create</button>
-    <a href="{% url 'ec2_images:list' %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'ec2_images:admin:list' %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}
