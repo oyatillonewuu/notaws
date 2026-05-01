@@ -1,0 +1,32 @@
+{% extends 'site/base.html' %} {% block title %}notaws | Sign in{% endblock %}
+{% block content %}
+<section class="auth-page">
+    <a class="auth-logo" href="{% url 'home' %}">notaws</a>
+    <div class="auth-card auth-card-compact auth-card-narrow">
+        <h2>Sign in</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label for="{{ login_form.username.id_for_label }}"
+                    >Username</label
+                >
+                {{ login_form.username }}
+                <div class="form-errors">{{ login_form.username.errors }}</div>
+            </div>
+            <div class="field">
+                <label for="{{ login_form.password.id_for_label }}"
+                    >Password</label
+                >
+                {{ login_form.password }}
+                <div class="form-errors">{{ login_form.password.errors }}</div>
+            </div>
+            <div class="form-errors">{{ login_form.non_field_errors }}</div>
+            <button class="btn auth-submit" type="submit">Sign in</button>
+        </form>
+        <p class="auth-switch-text">
+            If you do not have an account,
+            <a href="{% url 'signup' %}">create one here</a>.
+        </p>
+    </div>
+</section>
+{% endblock %}

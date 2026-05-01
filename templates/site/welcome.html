@@ -1,0 +1,51 @@
+{% extends 'site/base.html' %}
+
+{% block title %}notaws | Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-panel hero-panel-dark">
+        <span class="eyebrow">Platform home</span>
+        <h1>Build, publish, and manage your server workflows with confidence.</h1>
+        <p class="lead">
+            You are now inside notaws — a lightweight cloud-style platform inspired by AWS server interfaces.
+            Use it to organize image builds, prepare runtime images, and keep track of your instance activity.
+        </p>
+        <div class="actions">
+            <a class="btn" href="{% url 'ec2_dashboard:index' %}">Open dashboard</a>
+        </div>
+    </div>
+    <div class="card">
+        <span class="eyebrow">What you get</span>
+        <h2>A simple cloud experience for local infrastructure work.</h2>
+        <ul class="check-list">
+            <li>Image build pipelines for reusable environments.</li>
+            <li>Curated images your team can browse and work with.</li>
+            <li>Dashboard visibility into current operations.</li>
+            <li>A clean path into instance monitoring pages.</li>
+        </ul>
+    </div>
+</section>
+
+<section class="section-head">
+    <h2>Choose a plan that matches your ambitions</h2>
+    <p class="lead">
+        These prices are demo pricing for the landing experience, designed to present the service offering clearly.
+    </p>
+</section>
+
+<section class="pricing-grid">
+    {% for item in pricing %}
+        <article class="price-card">
+            <h3>{{ item.name }}</h3>
+            <div class="price">{{ item.price }}</div>
+            <p class="help-text">{{ item.description }}</p>
+            <ul>
+                {% for feature in item.features %}
+                    <li>{{ feature }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}

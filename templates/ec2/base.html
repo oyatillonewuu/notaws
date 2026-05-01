@@ -1,37 +1,42 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}notaws{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/ec2/base.css' %}">
-</head>
-<body>
-    <header class="topbar">
-        <!-- TODO: add link to home page os notaws -->
-        <a class="brand">notaws</a>
-        <nav>
-            {% if user.is_staff or user.is_superuser %}
-                <a href="{% url 'ec2_image_builds:admin:list' %}">Image Builds</a>
-                <a href="{% url 'ec2_images:admin:list' %}">Images</a>
-            {% else %}
-                <a href="{% url 'ec2_images:list' %}">Images</a>
-            {% endif %}
-            <a>Instances</a>
-        </nav>
-        <div class="auth">
-            {% if user.is_authenticated %}
-                <span>{{ user.username }}{% if user.is_staff %} (admin){% endif %}</span>
-            {% endif %}
-        </div>
-    </header>
-    <main>
-        {% if messages %}
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}notaws{% endblock %}</title>
+        <link rel="stylesheet" href="{% static 'css/ec2/base.css' %}" />
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="{% url 'welcome' %}">notaws</a>
+            <nav>
+                <a href="{% url 'welcome' %}">Home</a>
+                <a href="{% url 'ec2_dashboard:index' %}">Dashboard</a>
+            </nav>
+            <div class="auth">
+                {% if user.is_authenticated %}
+                <span>{{ user.username }}</span>
+                {% if user.is_staff %}
+                <span>(admin)</span>
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary" type="submit">
+                        Logout
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </header>
+        <main>
+            {% if messages %}
             <ul class="messages">
-                {% for m in messages %}<li class="msg msg-{{ m.tags }}">{{ m }}</li>{% endfor %}
+                {% for m in messages %}
+                <li class="msg msg-{{ m.tags }}">{{ m }}</li>
+                {% endfor %}
             </ul>
-        {% endif %}
-        {% block content %}{% endblock %}
-    </main>
-</body>
+            {% endif %} {% block content %}{% endblock %}
+        </main>
+    </body>
 </html>

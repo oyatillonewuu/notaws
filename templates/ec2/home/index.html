@@ -1,0 +1,61 @@
+{% extends 'ec2/base.html' %}
+
+{% block title %}notaws | EC2 Services{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-panel hero-panel-dark">
+        <span class="eyebrow">EC2 service center</span>
+        <h1>Main processes for your compute workflow.</h1>
+        <p class="lead">
+            This page acts as the main control surface for the EC2 area. From here, you can move between image build operations,
+            published images, dashboard visibility, and instance tracking.
+        </p>
+        <div class="metric-row">
+            <div class="metric-box">
+                <div class="metric-value">{{ summary.image_builds }}</div>
+                <div>Image builds configured</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value">{{ summary.images }}</div>
+                <div>Images in catalog</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value">{{ summary.instances }}</div>
+                <div>Instances tracked</div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <span class="eyebrow">Platform overview</span>
+        <h2>Use this area like a simple AWS console.</h2>
+        <p class="help-text">
+            Explore the main modules below to manage image lifecycle operations and get visibility into current workloads.
+        </p>
+        {% if not summary.database_ready %}
+            <div class="inline-note">
+                The database is not initialized yet. Run <strong>python manage.py migrate</strong> to unlock live counters and stored records.
+            </div>
+        {% endif %}
+        <div class="actions">
+            <a class="btn" href="{% url 'ec2_dashboard:index' %}">Open dashboard</a>
+            <a class="btn btn-secondary" href="{% url 'ec2_instances:index' %}">View instances</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-head">
+    <h2>Main processes</h2>
+    <p class="lead">These are the primary areas your users and operators can move through in the EC2 service.</p>
+</section>
+
+<section class="process-grid">
+    {% for process in process_cards %}
+        <article class="feature-card">
+            <h3>{{ process.title }}</h3>
+            <p class="help-text">{{ process.description }}</p>
+            <a class="btn" href="{{ process.href }}">{{ process.cta }}</a>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}
