@@ -21,6 +21,6 @@
         <small>Only built, non-deprecated builds shown.</small>
     </div>
     <button type="submit" class="btn">Save</button>
-    <a href="{% url 'ec2_images:detail' image.pk %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'ec2_images:admin:detail' image.pk %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}
