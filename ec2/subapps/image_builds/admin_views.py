@@ -147,4 +147,4 @@ def delete_view(request, pk):
     except services.BuildInUseError as exc:
         messages.error(request, str(exc))
         return redirect("ec2_image_builds:admin:detail", pk=build.pk)
-    return redirect("ec2_image_builds:list")
+    return redirect("ec2_image_builds:admin:list")
