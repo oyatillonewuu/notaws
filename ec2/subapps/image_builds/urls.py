@@ -1,10 +1,10 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import admin_views
 
 app_name = "ec2_image_builds"
 
-urlpatterns = [
+admin_patterns = [
     path("", admin_views.list_view, name="list"),
     path("create/", admin_views.create_view, name="create"),
     path("<int:pk>/", admin_views.detail_view, name="detail"),
@@ -18,3 +18,5 @@ urlpatterns = [
     path("<int:pk>/unbuild/", admin_views.unbuild_view, name="unbuild"),
     path("<int:pk>/delete/", admin_views.delete_view, name="delete"),
 ]
+
+urlpatterns = [path("admin/", include((admin_patterns, "admin")))]

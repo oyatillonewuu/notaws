@@ -6,13 +6,13 @@
     Otherwise, tries to build new image. If the resulting image is same, the code of current build
     is updated. Otherwise, triggers new replication which results in replacement and deprecation
     of current build.</em></p>
-<form method="post" action="{% url 'ec2_image_builds:update_dockerfile_code' build.pk %}">
+<form method="post" action="{% url 'ec2_image_builds:admin:update_dockerfile_code' build.pk %}">
     {% csrf_token %}
     <div class="field">
         <label for="dockerfile_code">Dockerfile</label>
         <textarea id="dockerfile_code" name="dockerfile_code" required>{{ build.dockerfile_code }}</textarea>
     </div>
     <button type="submit" class="btn">Save</button>
-    <a href="{% url 'ec2_image_builds:detail' build.pk %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'ec2_image_builds:admin:detail' build.pk %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

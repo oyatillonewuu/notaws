@@ -2,7 +2,7 @@
 {% block title %}Image Builds{% endblock %}
 {% block content %}
 <h1>Image Builds</h1>
-<p><a class="btn" href="{% url 'ec2_image_builds:create' %}">+ New Image Build</a></p>
+<p><a class="btn" href="{% url 'ec2_image_builds:admin:create' %}">+ New Image Build</a></p>
 <table>
     <thead>
         <tr><th>Tag</th><th>Built</th><th>Deprecated</th><th>Created</th><th>Actions</th></tr>
@@ -15,7 +15,7 @@
             <td class="{% if b.deprecated %}deprecated{% endif %}">{{ b.deprecated|yesno:"yes,no" }}</td>
             <td>{{ b.created_at|date:"Y-m-d H:i" }}</td>
             <td class="actions">
-                <a href="{% url 'ec2_image_builds:detail' b.pk %}" class="btn">View</a>
+                <a href="{% url 'ec2_image_builds:admin:detail' b.pk %}" class="btn">View</a>
             </td>
         </tr>
         {% empty %}

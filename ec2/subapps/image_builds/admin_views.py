@@ -54,7 +54,7 @@ def create_view(request):
         else:
             build = ImageBuild.objects.create(tag=tag, dockerfile_code=dockerfile_code)
             messages.success(request, f"Created ImageBuild {build.tag} (unbuilt)")
-            return redirect("ec2_image_builds:detail", pk=build.pk)
+            return redirect("ec2_image_builds:admin:detail", pk=build.pk)
     return render(request, "ec2/image_builds/create.html")
 
 
@@ -72,9 +72,9 @@ def update_direct(request, pk):
             set_django_message_from_result(request=request, service_result=result)
         except Exception as exc:  # docker_ops exceptions surface here
             messages.error(request, f"Update failed: {exc}")
-            return redirect("ec2_image_builds:detail", pk=build.pk)
+            return redirect("ec2_image_builds:admin:detail", pk=build.pk)
 
-        return redirect("ec2_image_builds:detail", pk=build.pk)
+        return redirect("ec2_image_builds:admin:detail", pk=build.pk)
     return render(request, "ec2/image_builds/update_direct.html", {"build": build})
 
 
@@ -93,9 +93,9 @@ def update_dockerfile_code(request, pk):
             set_django_message_from_result(request=request, service_result=result)
         except Exception as exc:  # docker_ops exceptions surface here
             messages.error(request, f"Update failed: {exc}")
-            return redirect("ec2_image_builds:detail", pk=build.pk)
+            return redirect("ec2_image_builds:admin:detail", pk=build.pk)
 
-        return redirect("ec2_image_builds:detail", pk=build.pk)
+        return redirect("ec2_image_builds:admin:detail", pk=build.pk)
     return render(
         request, "ec2/image_builds/update_dockerfile_code.html", {"build": build}
     )
@@ -109,7 +109,7 @@ def build_view(request, pk):
     """
 
     if request.method != "POST":
-        return redirect("ec2_image_builds:detail", pk=pk)
+        return redirect("ec2_image_builds:admin:detail", pk=pk)
     build = get_object_or_404(ImageBuild, pk=pk)
 
     try:
@@ -117,15 +117,15 @@ def build_view(request, pk):
         set_django_message_from_result(request=request, service_result=result)
     except Exception as exc:
         messages.error(request, f"Build failed: {exc}")
-        return redirect("ec2_image_builds:detail", pk=build.pk)
+        return redirect("ec2_image_builds:admin:detail", pk=build.pk)
 
-    return redirect("ec2_image_builds:detail", pk=build.pk)
+    return redirect("ec2_image_builds:admin:detail", pk=build.pk)
 
 
 @staff_member_required
 def unbuild_view(request, pk):
     if request.method != "POST":
-        return redirect("ec2_image_builds:detail", pk=pk)
+        return redirect("ec2_image_builds:admin:detail", pk=pk)
     build = get_object_or_404(ImageBuild, pk=pk)
     try:
         result: UnbuildResult = services.unbuild(current_build=build)
@@ -133,18 +133,18 @@ def unbuild_view(request, pk):
     except (BuildInUseError, CannotOperateOnDeprecatedBuild) as exc:
         messages.error(request, str(exc))
 
-    return redirect("ec2_image_builds:detail", pk=build.pk)
+    return redirect("ec2_image_builds:admin:detail", pk=build.pk)
 
 
 @staff_member_required
 def delete_view(request, pk):
     if request.method != "POST":
-        return redirect("ec2_image_builds:detail", pk=pk)
+        return redirect("ec2_image_builds:admin:detail", pk=pk)
     build = get_object_or_404(ImageBuild, pk=pk)
     try:
         result: DeleteResult = services.delete_build(current_build=build)
         set_django_message_from_result(request=request, service_result=result)
     except services.BuildInUseError as exc:
         messages.error(request, str(exc))
-        return redirect("ec2_image_builds:detail", pk=build.pk)
+        return redirect("ec2_image_builds:admin:detail", pk=build.pk)
     return redirect("ec2_image_builds:list")

@@ -1,7 +1,7 @@
 {% extends "ec2/base.html" %}
 {% block title %}Image Build — {{ build.tag }}{% endblock %}
 {% block content %}
-<p><a href="{% url 'ec2_image_builds:list' %}">&larr; back</a></p>
+<p><a href="{% url 'ec2_image_builds:admin:list' %}">&larr; back</a></p>
 <h1><span class="tag-pill">{{ build.tag }}</span></h1>
 <dl>
     <dt>is_built</dt><dd>{{ build.is_built|yesno:"yes,no" }}</dd>
@@ -14,20 +14,20 @@
 <pre class="dockerfile">{{ build.dockerfile_code }}</pre>
 
 <div class="actions">
-    <form method="post" action="{% url 'ec2_image_builds:build' build.pk %}">
+    <form method="post" action="{% url 'ec2_image_builds:admin:build' build.pk %}">
         {% csrf_token %}
         <button class="btn" type="submit">{% if build.is_built %}Rebuild{% else %}Build{% endif %}</button>
     </form>
-    <a class="btn btn-secondary" href="{% url 'ec2_image_builds:update_direct' build.pk %}">Edit directs fields</a>
-    <a class="btn btn-secondary" href="{% url 'ec2_image_builds:update_dockerfile_code' build.pk %}">Edit dockerfile code</a>
+    <a class="btn btn-secondary" href="{% url 'ec2_image_builds:admin:update_direct' build.pk %}">Edit directs fields</a>
+    <a class="btn btn-secondary" href="{% url 'ec2_image_builds:admin:update_dockerfile_code' build.pk %}">Edit dockerfile code</a>
     {% if build.is_built %}
-    <form method="post" action="{% url 'ec2_image_builds:unbuild' build.pk %}">
+    <form method="post" action="{% url 'ec2_image_builds:admin:unbuild' build.pk %}">
         {% csrf_token %}
         <button class="btn btn-secondary" type="submit"
                 {% if referenced %}disabled title="In use by Image or Instance"{% endif %}>Un-build</button>
     </form>
     {% endif %}
-    <form method="post" action="{% url 'ec2_image_builds:delete' build.pk %}">
+    <form method="post" action="{% url 'ec2_image_builds:admin:delete' build.pk %}">
         {% csrf_token %}
         <button class="btn btn-danger" type="submit"
                 {% if referenced %}disabled title="In use by Image or Instance"{% endif %}

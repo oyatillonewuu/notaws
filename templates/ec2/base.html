@@ -11,8 +11,10 @@
         <!-- TODO: add link to home page os notaws -->
         <a class="brand">notaws</a>
         <nav>
-            {% if user.is_staff %}
-                <a href="{% url 'ec2_image_builds:list' %}">Image Builds</a>
+            {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'ec2_image_builds:admin:list' %}">Image Builds</a>
+                <a href="{% url 'ec2_images:admin:list' %}">Images</a>
+            {% else %}
                 <a href="{% url 'ec2_images:list' %}">Images</a>
             {% endif %}
             <a>Instances</a>
