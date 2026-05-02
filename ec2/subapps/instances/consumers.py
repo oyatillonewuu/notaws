@@ -1,6 +1,5 @@
 import asyncio
 import json
-import select
 import threading
 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -57,19 +56,28 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         self._sender_task = asyncio.create_task(self._sender_loop())
 
     def _docker_reader(self):
-        """Blocking thread: reads Docker exec socket, pushes data into the async queue."""
+        """Blocking thread: drains the Docker exec socket into the async queue.
+
+        Uses recv() in blocking mode (not select+recv) — docker-py 7.x returns
+        a SocketIO whose underlying socket can be marked non-blocking by the
+        transport layer, which made select.select report 'not ready' even when
+        the kernel had data buffered. disconnect() closes the socket to wake
+        recv with an empty read.
+        """
         raw_sock = self._sock._sock
         try:
+            raw_sock.setblocking(True)
+        except OSError:
+            pass
+        try:
             while not self._closed:
-                ready = select.select([raw_sock], [], [], 0.5)[0]
-                if not ready:
-                    continue
-                data = raw_sock.recv(4096)
+                try:
+                    data = raw_sock.recv(4096)
+                except OSError:
+                    break
                 if not data:
                     break
                 asyncio.run_coroutine_threadsafe(self._queue.put(data), self._loop)
-        except Exception:
-            pass
         finally:
             asyncio.run_coroutine_threadsafe(self._queue.put(None), self._loop)
 
@@ -86,6 +94,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             pass
 
     async def receive(self, text_data=None, bytes_data=None):
+        # Preferred: bytes_data carries raw input, text_data carries JSON
+        # control messages. We also tolerate raw input over text_data so a
+        # cached client still works. The old code parsed every text frame as
+        # JSON and crashed on non-dicts (e.g. json.loads("1") == 1, then
+        # 1.get(...) raised AttributeError) — that swallowed every digit.
         if self._closed or not hasattr(self, "_sock"):
             return
 
@@ -93,23 +106,34 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         if bytes_data:
             await loop.run_in_executor(None, self._sock._sock.send, bytes_data)
-        elif text_data:
+            return
+
+        if not text_data:
+            return
+
+        try:
+            msg = json.loads(text_data)
+        except json.JSONDecodeError:
+            msg = None
+
+        if isinstance(msg, dict) and msg.get("type") == "resize":
             try:
-                msg = json.loads(text_data)
-                if msg.get("type") == "resize":
-                    rows = int(msg["rows"])
-                    cols = int(msg["cols"])
-                    await loop.run_in_executor(
-                        None,
-                        lambda: docker_ops.containers.resize_exec(
-                            self._exec_id, rows=rows, cols=cols
-                        ),
-                    )
-            except json.JSONDecodeError:
-                # Not a control message — raw terminal input from xterm.js
-                await loop.run_in_executor(
-                    None, self._sock._sock.send, text_data.encode()
-                )
+                rows = int(msg["rows"])
+                cols = int(msg["cols"])
+            except (KeyError, TypeError, ValueError):
+                return
+            await loop.run_in_executor(
+                None,
+                lambda: docker_ops.containers.resize_exec(
+                    self._exec_id, rows=rows, cols=cols
+                ),
+            )
+            return
+
+        # Anything else on a text frame: treat as raw input.
+        await loop.run_in_executor(
+            None, self._sock._sock.send, text_data.encode()
+        )
 
     async def disconnect(self, close_code):
         self._closed = True

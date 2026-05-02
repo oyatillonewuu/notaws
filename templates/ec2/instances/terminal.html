@@ -1,57 +1,26 @@
 {% extends "ec2/base.html" %}
+{% load static %}
 {% block title %}Terminal — {{ instance }}{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'vendor/xterm/xterm.css' %}">
+<link rel="stylesheet" href="{% static 'css/ec2/instances.css' %}">
+
 <p><a href="{% url 'ec2_instances:detail' instance.pk %}">&larr; back</a></p>
 <h1>Terminal: {{ instance.name|default:instance.short_id }}</h1>
-<div id="terminal-container">
-    <div id="terminal"></div>
+
+<div id="terminal-app"
+     data-ws-url="{% if request.is_secure %}wss{% else %}ws{% endif %}://{{ request.get_host }}/ws/instances/{{ instance.pk }}/terminal/"
+     data-detail-url="{% url 'ec2_instances:detail' instance.pk %}">
+    <div class="terminal-toolbar">
+        <span class="terminal-status">connecting…</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-secondary" data-action="fullscreen">Fullscreen</button>
+        <button type="button" class="btn btn-secondary" data-action="disconnect">Disconnect</button>
+    </div>
+    <div class="terminal-host"></div>
 </div>
-<div class="actions" style="margin-top:0.5rem">
-    <button class="btn btn-secondary" onclick="disconnect()">Disconnect</button>
-</div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5/css/xterm.css">
-<script src="https://cdn.jsdelivr.net/npm/xterm@5/lib/xterm.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8/lib/xterm-addon-fit.js"></script>
-<script>
-const term = new Terminal({ cursorBlink: true, convertEol: true, scrollback: 1000 });
-const fitAddon = new FitAddon.FitAddon();
-term.loadAddon(fitAddon);
-term.open(document.getElementById('terminal'));
-fitAddon.fit();
-
-const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${proto}://${window.location.host}/ws/instances/{{ instance.pk }}/terminal/`);
-ws.binaryType = 'arraybuffer';
-
-ws.onopen = () => {
-    term.focus();
-    ws.send(JSON.stringify({ type: 'resize', rows: term.rows, cols: term.cols }));
-};
-ws.onmessage = (e) => {
-    term.write(e.data instanceof ArrayBuffer ? new Uint8Array(e.data) : e.data);
-};
-ws.onclose = () => term.write('\r\n\x1b[31m[disconnected]\x1b[0m\r\n');
-ws.onerror = () => term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
-
-term.onData((data) => {
-    if (ws.readyState === WebSocket.OPEN) ws.send(data);
-});
-term.onResize(({ rows, cols }) => {
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'resize', rows, cols }));
-    }
-});
-
-window.addEventListener('resize', () => fitAddon.fit());
-
-function disconnect() {
-    ws.close();
-    window.location.href = "{% url 'ec2_instances:detail' instance.pk %}";
-}
-</script>
-<style>
-#terminal-container { background: #000; padding: 0.5rem; border-radius: 4px; }
-#terminal { width: 100%; height: 400px; }
-</style>
+<script src="{% static 'vendor/xterm/xterm.js' %}"></script>
+<script src="{% static 'vendor/xterm/xterm-addon-fit.js' %}"></script>
+<script src="{% static 'js/ec2/instances.js' %}"></script>
 {% endblock %}

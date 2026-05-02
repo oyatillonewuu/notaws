@@ -14,17 +14,21 @@ class CreateResult(GenericServiceFunctionResult):
     instance_pk: int | None = None
 
 
+@dataclass
 class UpdateResult(GenericServiceFunctionResult):
     pass
 
 
+@dataclass
 class StartResult(GenericServiceFunctionResult):
     pass
 
 
+@dataclass
 class StopResult(GenericServiceFunctionResult):
     pass
 
 
+@dataclass
 class DeleteResult(GenericServiceFunctionResult):
     pass

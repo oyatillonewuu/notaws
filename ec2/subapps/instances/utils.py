@@ -31,6 +31,17 @@ def stop_container_from(instance: Instance) -> None:
     docker_ops.containers.stop_container(instance.docker_container_id)
 
 
+def update_container_resources_from(instance: Instance) -> None:
+    """Live-update the container's CPU/RAM to match the instance row."""
+    if not instance.docker_container_id:
+        return
+    docker_ops.containers.update_container_resources(
+        instance.docker_container_id,
+        cpu=instance.cpu,
+        ram=instance.ram,
+    )
+
+
 def remove_container_if_exists(container_id: str | None) -> None:
     """Best-effort removal — silently eats ContainerOpException."""
     if not container_id:

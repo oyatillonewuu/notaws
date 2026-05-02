@@ -14,7 +14,7 @@ from .tasks import (
     dispatch_container_start,
     dispatch_container_stop,
 )
-from .utils import get_container_status_from
+from .utils import get_container_status_from, update_container_resources_from
 
 MAX_CPU = 4
 MAX_RAM = 8      # GB
@@ -24,9 +24,6 @@ MAX_STORAGE = 100  # GB
 def create_instance(
     *, image, ram: int, cpu: int, storage: int, owner, name: str | None = None
 ) -> CreateResult:
-    result = CreateResult()
-    result.status = ResultStatus.warning
-
     if not image.active_build or not image.active_build.is_built:
         raise ImageNotReadyError("Selected image has no built active build")
 
@@ -43,9 +40,11 @@ def create_instance(
 
     dispatch_container_create(instance_id=instance.pk)
 
-    result.instance_pk = instance.pk
-    result.message = "Instance created. Container is starting."
-    return result
+    return CreateResult(
+        status=ResultStatus.success,
+        instance_pk=instance.pk,
+        message="Instance created and started.",
+    )
 
 
 def update_instance(
@@ -56,7 +55,10 @@ def update_instance(
     ram: int | None,
     storage: int | None,
 ) -> UpdateResult:
-    result = UpdateResult()
+    resources_changed = (
+        (cpu is not None and cpu != instance.cpu)
+        or (ram is not None and ram != instance.ram)
+    )
 
     if name is not None:
         instance.name = name
@@ -68,39 +70,30 @@ def update_instance(
         instance.storage = storage
 
     instance.save()
-    result.message = "Instance updated."
-    return result
+
+    if resources_changed and instance.docker_container_id:
+        update_container_resources_from(instance)
+
+    return UpdateResult(status=ResultStatus.success, message="Instance updated.")
 
 
 def start_instance(*, instance: Instance) -> StartResult:
-    result = StartResult()
-    result.status = ResultStatus.warning
     dispatch_container_start(instance_id=instance.pk)
-    result.message = "Start queued."
-    return result
+    return StartResult(status=ResultStatus.success, message="Instance started.")
 
 
 def stop_instance(*, instance: Instance) -> StopResult:
-    result = StopResult()
-    result.status = ResultStatus.warning
     dispatch_container_stop(instance_id=instance.pk)
-    result.message = "Stop queued."
-    return result
+    return StopResult(status=ResultStatus.success, message="Instance stopped.")
 
 
 def delete_instance(*, instance: Instance) -> DeleteResult:
-    result = DeleteResult()
-    result.status = ResultStatus.warning
-    result.message = ""
-
     container_id = instance.docker_container_id
     if container_id:
         dispatch_container_remove(container_id=container_id)
-        result.message = "Container removal queued. "
 
     instance.delete()
-    result.message += "DB record deleted."
-    return result
+    return DeleteResult(status=ResultStatus.success, message="Instance deleted.")
 
 
 def get_instance_status(*, instance: Instance) -> str:

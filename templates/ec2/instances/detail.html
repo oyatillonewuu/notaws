@@ -1,6 +1,8 @@
 {% extends "ec2/base.html" %}
+{% load static %}
 {% block title %}Instance — {{ instance }}{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/ec2/instances.css' %}">
 <p><a href="{% url 'ec2_instances:list' %}">&larr; back</a></p>
 <h1>{{ instance.name|default:instance.short_id }}</h1>
 <dl>
@@ -9,7 +11,7 @@
     <dt>CPU</dt><dd>{{ instance.cpu }} vCPU</dd>
     <dt>RAM</dt><dd>{{ instance.ram }} GB</dd>
     <dt>Storage</dt><dd>{{ instance.storage }} GB</dd>
-    <dt>Status</dt><dd>{{ status }}</dd>
+    <dt>Status</dt><dd><span class="status-pill {{ status }}">{{ status }}</span></dd>
     <dt>Created</dt><dd>{{ instance.created_at|date:"Y-m-d H:i" }}</dd>
 </dl>
 <div class="actions">

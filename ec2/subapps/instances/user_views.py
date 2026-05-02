@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,6 +12,8 @@ from .exceptions import ImageNotReadyError, InstanceHasNoContainerError
 from .models import Instance
 from .schemas import CreateResult, DeleteResult, StartResult, StopResult, UpdateResult
 from .utils import set_django_message_from_result
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -35,6 +39,7 @@ def create_view(request):
         "max_cpu": services.MAX_CPU,
         "max_ram": services.MAX_RAM,
         "max_storage": services.MAX_STORAGE,
+        "submitted": {},
     }
     if request.method == "POST":
         name = request.POST.get("name", "").strip() or None
@@ -42,6 +47,13 @@ def create_view(request):
         cpu_str = request.POST.get("cpu", "").strip()
         ram_str = request.POST.get("ram", "").strip()
         storage_str = request.POST.get("storage", "").strip()
+        context["submitted"] = {
+            "name": name or "",
+            "image": image_id or "",
+            "cpu": cpu_str,
+            "ram": ram_str,
+            "storage": storage_str,
+        }
 
         errors = []
         if not image_id:
@@ -81,8 +93,9 @@ def create_view(request):
                 return redirect("ec2_instances:detail", pk=result.instance_pk)
             except ImageNotReadyError as exc:
                 messages.error(request, str(exc))
-            except Exception as exc:
-                messages.error(request, f"Failed to create instance: {exc}")
+            except Exception:
+                logger.exception("create_instance failed for user %s", request.user.pk)
+                messages.error(request, "Failed to create instance. Please try again.")
 
     return render(request, "ec2/instances/create.html", context)
 
@@ -106,12 +119,24 @@ def update_view(request, pk):
         "max_cpu": services.MAX_CPU,
         "max_ram": services.MAX_RAM,
         "max_storage": services.MAX_STORAGE,
+        "submitted": {
+            "name": instance.name or "",
+            "cpu": str(instance.cpu),
+            "ram": str(instance.ram),
+            "storage": str(instance.storage),
+        },
     }
     if request.method == "POST":
         name = request.POST.get("name", "").strip() or None
         cpu_str = request.POST.get("cpu", "").strip()
         ram_str = request.POST.get("ram", "").strip()
         storage_str = request.POST.get("storage", "").strip()
+        context["submitted"] = {
+            "name": name or "",
+            "cpu": cpu_str,
+            "ram": ram_str,
+            "storage": storage_str,
+        }
 
         errors = []
         cpu = ram = storage = None
@@ -144,8 +169,9 @@ def update_view(request, pk):
                 )
                 set_django_message_from_result(request=request, service_result=result)
                 return redirect("ec2_instances:detail", pk=instance.pk)
-            except Exception as exc:
-                messages.error(request, f"Update failed: {exc}")
+            except Exception:
+                logger.exception("update_instance failed for instance %s", instance.pk)
+                messages.error(request, "Failed to update instance. Please try again.")
 
     return render(request, "ec2/instances/update.html", context)
 
@@ -158,8 +184,11 @@ def start_view(request, pk):
     try:
         result: StartResult = services.start_instance(instance=instance)
         set_django_message_from_result(request=request, service_result=result)
-    except (InstanceHasNoContainerError, Exception) as exc:
-        messages.error(request, f"Start failed: {exc}")
+    except InstanceHasNoContainerError as exc:
+        messages.error(request, str(exc))
+    except Exception:
+        logger.exception("start_instance failed for instance %s", instance.pk)
+        messages.error(request, "Failed to start instance. Please try again.")
     return redirect("ec2_instances:detail", pk=pk)
 
 
@@ -171,8 +200,11 @@ def stop_view(request, pk):
     try:
         result: StopResult = services.stop_instance(instance=instance)
         set_django_message_from_result(request=request, service_result=result)
-    except (InstanceHasNoContainerError, Exception) as exc:
-        messages.error(request, f"Stop failed: {exc}")
+    except InstanceHasNoContainerError as exc:
+        messages.error(request, str(exc))
+    except Exception:
+        logger.exception("stop_instance failed for instance %s", instance.pk)
+        messages.error(request, "Failed to stop instance. Please try again.")
     return redirect("ec2_instances:detail", pk=pk)
 
 
@@ -190,7 +222,8 @@ def delete_view(request, pk):
     try:
         result: DeleteResult = services.delete_instance(instance=instance)
         set_django_message_from_result(request=request, service_result=result)
-    except Exception as exc:
-        messages.error(request, f"Delete failed: {exc}")
+    except Exception:
+        logger.exception("delete_instance failed for instance %s", instance.pk)
+        messages.error(request, "Failed to delete instance. Please try again.")
         return redirect("ec2_instances:detail", pk=pk)
     return redirect("ec2_instances:list")

@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -6,6 +8,8 @@ from . import services
 from .models import Instance
 from .schemas import DeleteResult
 from .utils import set_django_message_from_result
+
+logger = logging.getLogger(__name__)
 
 
 @staff_member_required
@@ -24,6 +28,7 @@ def delete_view(request, pk):
     try:
         result: DeleteResult = services.delete_instance(instance=instance)
         set_django_message_from_result(request=request, service_result=result)
-    except Exception as exc:
-        messages.error(request, f"Delete failed: {exc}")
+    except Exception:
+        logger.exception("admin delete_instance failed for instance %s", instance.pk)
+        messages.error(request, "Failed to delete instance. Please try again.")
     return redirect("ec2_instances:admin:list")
